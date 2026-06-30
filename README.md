@@ -1,51 +1,51 @@
-# Changelog Generator
+# json_to_csv
 
-A simple bash script that generates a structured `CHANGELOG.md` from your project's git history.
-
-## Setup (3 steps)
-
-1. **Download the script:**
-   ```bash
-   curl -o changelog.sh https://raw.githubusercontent.com/YOUR_REPO/main/changelog.sh
-   chmod +x changelog.sh
-   ```
-
-2. **Run in any git repo:**
-   ```bash
-   cd /path/to/your/repo
-   bash /path/to/changelog.sh
-   ```
-
-3. **Check the output:**
-   ```bash
-   cat CHANGELOG.md
-   ```
-
-## Features
-
-- Auto-categorizes commits into: `Added`, `Fixed`, `Changed`, `Removed`
-- Works with semantic version tags (v1.0.0, v2.3.1, etc.)
-- Falls back to chronological order when no tags exist
-- Supports conventional commit prefixes (feat:, fix:, etc.)
-- Generates clean Markdown output
+Convert a JSON array of flat objects into a CSV file. Python 3.10+, standard library only.
 
 ## Usage
 
 ```bash
-# Generate CHANGELOG.md in current directory
-bash changelog.sh
-
-# Generate to a specific file
-bash changelog.sh docs/CHANGELOG.md
+python json_to_csv.py input.json output.csv
 ```
 
-## Accepted Stack
+`input.json` must contain an array of objects, e.g.:
 
-- Bash
-- Python
-- Native Claude Code SKILL.md
+```json
+[
+  {"name": "Ada", "age": 36},
+  {"name": "Linus"}
+]
+```
 
-## Tested On
+Produces `output.csv`:
 
-- GitHub repositories with git tag history
-- Works on Linux, macOS, and Windows (Git Bash / WSL)
+```csv
+name,age
+Ada,36
+Linus,
+```
+
+## Behavior
+
+- **Header** = union of all keys across every object, in first-seen order (stable output).
+- **Missing keys** are filled with an empty string.
+- **`null`** becomes an empty string; booleans render as `true`/`false`.
+- Quotes, commas, and newlines inside values are escaped per RFC 4180 (via Python's `csv` module).
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Usage error (wrong number of arguments) |
+| 2 | Input not found / invalid JSON / not an array of objects |
+
+## Tests
+
+```bash
+pip install pytest
+pytest -q
+```
+
+Covers: header union ordering, missing-key fill, `null`/bool normalization,
+special-character round-trip, non-array rejection, and a full CLI end-to-end run.
